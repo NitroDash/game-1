@@ -42,7 +42,7 @@ class Carryable extends Entity {
             this.dx=0;
             this.dz=0;
             this.dest=null;
-            this.testDest=Math.floor(Math.random()*18);
+            this.testDest=0;
         }
         this.addD(deltaTime);
         this.collideWithTerrain();

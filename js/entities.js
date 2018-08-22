@@ -463,6 +463,13 @@ class Pikmin extends Entity {
                 this.collideWithObjects();
                 break;
             case 6:
+                if (!this.following.workable) {
+                    this.mode=0;
+                    this.dx=0;
+                    this.dz=0;
+                    this.following=null;
+                    break;
+                }
                 v=this.following.workPlane.vectorTo(this.hitbox);
                 if (!v) {
                     this.mode=0;
@@ -511,6 +518,8 @@ class Pikmin extends Entity {
             this.following.removePikmin(this);
             this.following=null;
             this.mode=0;
+            this.dx=0;
+            this.dz=0;
         }
     }
     

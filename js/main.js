@@ -19,11 +19,14 @@ var floors=[];
 var terrainObjs=[];
 
 var textures=[];
-var texURLs=["img/sand.png","img/grass.png","img/stone2.png","img/bridge.png"];
+var texURLs=["img/sand.png","img/grass.png","img/stone2.png","img/bridge.png","img/weakWall.png"];
 
 var graph=new MapGraph();
 
 var keys=[keyboard(87),keyboard(83),keyboard(65),keyboard(68),keyboard(9),mouseClick(1),mouseClick(3),keyboard(16),keyboard(81),keyboard(73)];
+
+var DEBUG_SHOW_GRAPH_NODES=false;
+var DEBUG_EASY_OBSTACLES=false;
 
 function onMouseMove(ev) {
     mouse.x=(ev.clientX/window.innerWidth)*2-1;
@@ -216,7 +219,10 @@ function loadLevel(url,callback) {
                     entities.push(new Pikmin(result.entities[i].x,result.entities[i].y,result.entities[i].z));
                     break;
                 case "bridge":
-                    entities.push(new Bridge(new THREE.Vector2(result.entities[i].p1.x,result.entities[i].p1.z),new THREE.Vector2(result.entities[i].p2.x,result.entities[i].p2.z),result.entities[i].y));
+                    entities.push(new Bridge(new THREE.Vector2(result.entities[i].p1.x,result.entities[i].p1.z),new THREE.Vector2(result.entities[i].p2.x,result.entities[i].p2.z),result.entities[i].y,result.entities[i].id));
+                    break;
+                case "wall":
+                    entities.push(new BreakableWall(new THREE.Vector2(result.entities[i].p1.x,result.entities[i].p1.z),new THREE.Vector2(result.entities[i].p2.x,result.entities[i].p2.z),result.entities[i].yMin,result.entities[i].yMax,result.entities[i].id));
                     break;
             }
         }
@@ -231,9 +237,10 @@ function loadLevel(url,callback) {
             }
         }
         for (let i=0; i<result.graph.length; i++) {
-            graph.addNode(new MapGraphNode(result.graph[i].x,result.graph[i].y,result.graph[i].z,result.graph[i].from));
+            graph.addNode(new MapGraphNode(result.graph[i].x,result.graph[i].y,result.graph[i].z,result.graph[i].from,result.graph[i].obstacle));
         }
         graph.calculateDistances();
+        if (DEBUG_SHOW_GRAPH_NODES) graph.render();
         callback();
     })
 }
