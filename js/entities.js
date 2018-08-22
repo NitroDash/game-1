@@ -183,6 +183,9 @@ class Player extends Entity {
             addD.y-=Math.cos(camera.theta);
         }
         if (addD.lengthSq()>0) {
+            if (this.speed==0) {
+                this.theta=addD.angle();
+            }
             this.speed+=deltaTime*30;
             if (this.speed>this.MAXSPEED) this.speed=this.MAXSPEED;
             let angle=addD.angle();
