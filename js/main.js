@@ -26,7 +26,8 @@ var graph=new MapGraph();
 var keys=[keyboard(87),keyboard(83),keyboard(65),keyboard(68),keyboard(9),mouseClick(1),mouseClick(3),keyboard(16),keyboard(81),keyboard(73)];
 
 var DEBUG_SHOW_GRAPH_NODES=false;
-var DEBUG_EASY_OBSTACLES=true;
+var DEBUG_EASY_OBSTACLES=false;
+var DEBUG_SPAWN_PELLET_ON_THROW=false;
 
 function onMouseMove(ev) {
     mouse.x=(ev.clientX/window.innerWidth)*2-1;

@@ -22,6 +22,11 @@ class MapGraph {
     render() {
         for (let i=0; i<this.nodes.length; i++) {
             addVisualGraphNode(i,new THREE.Vector3(this.nodes[i].x,this.nodes[i].y,this.nodes[i].z));
+            for (let j=0; j<this.nodes[i].links.length; j++) {
+                if (this.nodes[i].links[j]>i||!this.nodes[this.nodes[i].links[j]].links.includes(i)) {
+                    addVisualGraphEdge(this.nodes[i].x,this.nodes[i].y+0.5,this.nodes[i].z,this.nodes[this.nodes[i].links[j]].x,this.nodes[this.nodes[i].links[j]].y+0.5,this.nodes[this.nodes[i].links[j]].z);
+                }
+            }
         }
     }
     
@@ -146,4 +151,10 @@ function addVisualGraphNode(id, pos) {
     obj.position.set(pos.x,pos.y,pos.z);
     obj.scale.set(5,5,1);
     scene.add(obj);
+}
+
+function addVisualGraphEdge(x1,y1,z1,x2,y2,z2) {
+    let g=new THREE.BufferGeometry();
+    g.addAttribute("position",new THREE.BufferAttribute(new Float32Array([x1,y1,z1,x2,y2,z2]),3));
+    scene.add(new THREE.Line(g,new THREE.LineBasicMaterial({color: 0xff00ff})));
 }

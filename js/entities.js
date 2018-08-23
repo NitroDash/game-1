@@ -233,6 +233,7 @@ class Player extends Entity {
                 let objs=getMouseObjects();
                 if (objs.length>0) {
                     this.pikmin[0].throw(new THREE.Vector3(objs[0].point.x,objs[0].point.y+0.5,objs[0].point.z));
+                    if (DEBUG_SPAWN_PELLET_ON_THROW) entities.push(new OnePellet(objs[0].point.x,objs[0].point.y+0.5,objs[0].point.z));
                 }
             }
         }
@@ -623,7 +624,7 @@ class Onion extends Entity {
     
     throwLid() {
         this.geom.children[0].position.set(0,1.6,0);
-        this.geom.children[0].rotation.y=0;
+        this.geom.children[0].rotation.set(0,0,0);
         this.lidDy=15;
         this.lidUp=true;
     }

@@ -13,13 +13,14 @@ class Carryable extends Entity {
         this.normal=new THREE.Vector3(0,1,0);
         this.plane=planeFromNormal(this.normal,this.geom.position);
         this.dest=null;
-        this.testDest=5;
+        this.testDest=-1;
         this.onionProgress=0;
         this.baseY=0;
         this.pikminValue=0;
     }
     
     update(deltaTime) {
+        if (this.testDest<0) this.testDest=this.getFinalDest();
         if (this.onionProgress>0) {
             this.onionProgress+=deltaTime;
             if (this.onionProgress>=1) {
