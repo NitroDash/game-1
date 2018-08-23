@@ -240,3 +240,34 @@ class BreakableWall extends ChangeableTerrain {
         this.floors[0].yMax=this.height*h+this.yMin;
     }
 }
+
+class FallBridge extends Bridge {
+    constructor(p1,p2,y,yFinal,id) {
+        super(p1,p2,y,id);
+        this.yFinal=yFinal;
+        this.falling=false;
+        this.dy=0;
+    }
+    
+    update(deltaTime) {
+        if (this.falling) {
+            this.dy-=GRAVITY*deltaTime;
+            this.geom.position.y+=this.dy*deltaTime;
+            this.floors[0].yMax+=this.dy*deltaTime;
+            if (this.geom.position.y<=this.yFinal) {
+                this.geom.position.y=this.yFinal;
+                this.floors[0].yMax=this.yFinal;
+                this.falling=false;
+            }
+        } else {
+            super.update(deltaTime);
+        }
+    }
+    
+    updateProgress() {
+        super.updateProgress();
+        if (this.progress==1) {
+            this.falling=true;
+        }
+    }
+}

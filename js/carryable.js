@@ -14,9 +14,22 @@ class Carryable extends Entity {
         this.plane=planeFromNormal(this.normal,this.geom.position);
         this.dest=null;
         this.testDest=5;
+        this.onionProgress=0;
+        this.baseY=0;
+        this.pikminValue=0;
     }
     
     update(deltaTime) {
+        if (this.onionProgress>0) {
+            this.onionProgress+=deltaTime;
+            if (this.onionProgress>=1) {
+                this.onionProgress=1;
+                this.despawn();
+                graph.onion.spawnPikmin(this.pikminValue);
+            }
+            this.geom.position.y=this.baseY+this.onionProgress*5;
+            this.geom.scale.set(1-this.onionProgress,1-this.onionProgress,1-this.onionProgress);
+        }
         this.dy-=GRAVITY*deltaTime;
         let speed=1.5+(this.numPikmin-this.weight)/(this.capacity-this.weight);
         if (this.numPikmin>=this.weight) {
@@ -28,6 +41,8 @@ class Carryable extends Entity {
                     let next=graph.routeTo(this.dest.z,this.testDest);
                     if (next>=0) {
                         this.dest=new THREE.Vector3(graph.nodes[next].x,graph.nodes[next].z,next);
+                    } else if (next==-1) {
+                        this.onReachingDest();
                     }
                 }
                 let v=new THREE.Vector2(this.dest.x-this.hitbox.x,this.dest.y-this.hitbox.z);
@@ -42,7 +57,7 @@ class Carryable extends Entity {
             this.dx=0;
             this.dz=0;
             this.dest=null;
-            this.testDest=0;
+            this.testDest=this.getFinalDest();
         }
         this.addD(deltaTime);
         this.collideWithTerrain();
@@ -53,6 +68,11 @@ class Carryable extends Entity {
         this.geom.rotateZ(-xzN);
         this.geom.position.set(v.x,v.y,v.z);
         this.plane.fromNormal(this.normal,v);
+    }
+    
+    suckToOnion() {
+        this.onionProgress=0.001;
+        this.baseY=this.geom.position.y;
     }
     
     collideWithTerrain() {
@@ -84,6 +104,17 @@ class Carryable extends Entity {
             let v=walls[i].ejectVector(this.hitbox);
             if (v) {
                 this.translate(v.x,0,v.y);
+            }
+        }
+    }
+    
+    getFinalDest() {return 0;}
+    
+    onReachingDest() {
+        this.carryable=false;
+        for (let i=0; i<this.pikmin.length; i++) {
+            if (this.pikmin[i]) {
+                this.pikmin[i].uncarry();
             }
         }
     }
@@ -143,6 +174,14 @@ class Pellet extends Carryable {
         let buffer=new THREE.BufferGeometry();
         buffer.fromGeometry(geom);
         super(new THREE.Mesh(buffer, new THREE.MeshLambertMaterial({map: tex})),x,y,z,h,r,amount,amount*2);
+        this.pikminValue=amount;
+    }
+    
+    getFinalDest() {return graph.onion.node;}
+    
+    onReachingDest() {
+        super.onReachingDest();
+        this.suckToOnion();
     }
 }
 

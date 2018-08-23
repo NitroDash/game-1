@@ -3,6 +3,7 @@ class MapGraph {
         this.nodes=[];
         this.searchNodes=[];
         this.minDists=[];
+        this.onion=null;
     }
     
     addNode(node) {
@@ -25,6 +26,7 @@ class MapGraph {
     }
     
     routeTo(current, target, allowObstacles) {
+        if (current==target) return -1;
         for (let i=0; i<this.minDists.length; i++) {
             this.minDists[i]=Infinity;
         }

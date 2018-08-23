@@ -19,9 +19,15 @@ class Entity {
         this.followable=false;
         this.pikmin=[];
         this.isPikmin=false;
+        this.toRemove=false;
     }
     
     update(deltaTime) {}
+    
+    despawn() {
+        scene.remove(this.geom);
+        this.toRemove=true;
+    }
     
     translate(x,y,z) {
         if (this.geom) {
@@ -162,43 +168,47 @@ class Player extends Entity {
         this.MAXSPEED=12;
         this.followable=true;
         this.whistleRadius=0;
+        this.springable=true;
+        this.springing=false;
     }
     
     update(deltaTime) {
-        let addD=new THREE.Vector2(0,0);
-        if (keys[0].isDown) {
-            addD.x+=Math.cos(camera.theta);
-            addD.y+=Math.sin(camera.theta);
-        }
-        if (keys[1].isDown) {
-            addD.x-=Math.cos(camera.theta);
-            addD.y-=Math.sin(camera.theta);
-        }
-        if (keys[2].isDown) {
-            addD.x-=Math.sin(camera.theta);
-            addD.y+=Math.cos(camera.theta);
-        }
-        if (keys[3].isDown) {
-            addD.x+=Math.sin(camera.theta);
-            addD.y-=Math.cos(camera.theta);
-        }
-        if (addD.lengthSq()>0) {
-            if (this.speed==0) {
-                this.theta=addD.angle();
+        if (!this.springing) {
+            let addD=new THREE.Vector2(0,0);
+            if (keys[0].isDown) {
+                addD.x+=Math.cos(camera.theta);
+                addD.y+=Math.sin(camera.theta);
             }
-            this.speed+=deltaTime*30;
-            if (this.speed>this.MAXSPEED) this.speed=this.MAXSPEED;
-            let angle=addD.angle();
-            while(angle-Math.PI>this.theta) {angle-=Math.PI*2;}
-            while (angle+Math.PI<this.theta) {angle+=Math.PI*2;}
-            this.theta=(angle>this.theta)?Math.min(angle,this.theta+3*deltaTime):Math.max(angle,this.theta-3*deltaTime);
-            this.geom.rotation.y=this.theta;
-        } else {
-            this.speed-=deltaTime*30;
-            if (this.speed<0) this.speed=0;
+            if (keys[1].isDown) {
+                addD.x-=Math.cos(camera.theta);
+                addD.y-=Math.sin(camera.theta);
+            }
+            if (keys[2].isDown) {
+                addD.x-=Math.sin(camera.theta);
+                addD.y+=Math.cos(camera.theta);
+            }
+            if (keys[3].isDown) {
+                addD.x+=Math.sin(camera.theta);
+                addD.y-=Math.cos(camera.theta);
+            }
+            if (addD.lengthSq()>0) {
+                if (this.speed==0) {
+                    this.theta=addD.angle();
+                }
+                this.speed+=deltaTime*30;
+                if (this.speed>this.MAXSPEED) this.speed=this.MAXSPEED;
+                let angle=addD.angle();
+                while(angle-Math.PI>this.theta) {angle-=Math.PI*2;}
+                while (angle+Math.PI<this.theta) {angle+=Math.PI*2;}
+                this.theta=(angle>this.theta)?Math.min(angle,this.theta+3*deltaTime):Math.max(angle,this.theta-3*deltaTime);
+                this.geom.rotation.y=this.theta;
+            } else {
+                this.speed-=deltaTime*30;
+                if (this.speed<0) this.speed=0;
+            }
+            this.dx=Math.sin(this.theta)*this.speed;
+            this.dz=Math.cos(this.theta)*this.speed;
         }
-        this.dx=Math.sin(this.theta)*this.speed;
-        this.dz=Math.cos(this.theta)*this.speed;
         this.dy-=GRAVITY*deltaTime;
         this.addD(deltaTime);
         this.collideWithObjects();
@@ -272,6 +282,18 @@ class Player extends Entity {
         }
         return new THREE.Vector2(this.hitbox.x-y*Math.sin(theta)-x*Math.cos(theta),this.hitbox.z-y*Math.cos(theta)+x*Math.sin(theta));
     }
+    
+    hitFloor() {
+        super.hitFloor();
+        this.springing=false;
+    }
+    
+    spring(dx,dy,dz) {
+        this.dx=dx;
+        this.dy=dy;
+        this.dz=dz;
+        this.springing=true;
+    }
 }
 
 class Pikmin extends Entity {
@@ -284,6 +306,7 @@ class Pikmin extends Entity {
         this.followDist=0;
         this.isPikmin=true;
         this.MAXSPEED=12;
+        this.springable=true;
     }
     
     unfollow() {
@@ -293,6 +316,27 @@ class Pikmin extends Entity {
             this.dx=0;
             this.dz=0;
             this.mode=0;
+        }
+    }
+    
+    uncarry() {
+        if (this.mode==4) {
+            this.following.removePikmin(this);
+            this.following=null;
+            this.dx=0;
+            this.dz=0;
+            this.mode=0;
+        }
+    }
+    
+    spring(dx,dy,dz) {
+        if (this.mode==1||this.mode==0) {
+            if (this.following) this.following.removePikmin(this);
+            this.following=null;
+            this.mode=2;
+            this.dx=dx;
+            this.dy=dy;
+            this.dz=dz;
         }
     }
     
@@ -532,6 +576,85 @@ class Pikmin extends Entity {
             this.dx=0;
             this.dz=0;
             this.mode=0;
+        }
+    }
+}
+
+class Onion extends Entity {
+    constructor(x,y,z,node) {
+        let g=new THREE.BoxBufferGeometry(3,3,3);
+        for (let i=0; i<72; i+=2) {
+            if (g.attributes.uv.array[i]==1&&(i!==18&&i!==22)) {
+                g.attributes.uv.array[i]=0.5;
+            }
+        }
+        g.attributes.uv.array[20]=0.5;
+        g.attributes.uv.array[16]=0.5;
+        g.attributes.uv.needsUpdate=true;
+        let obj=new THREE.Mesh(g,new THREE.MeshLambertMaterial({map: getTexture(5)}));
+        let lid=new THREE.Mesh(new THREE.BoxBufferGeometry(3,0.2,3),new THREE.MeshLambertMaterial({color: 0xff0000}));
+        obj.add(lid);
+        lid.position.set(0,1.6,0);
+        super(x,y+6,z,new Cylinder(x,y+6,z,3,1.5),obj);
+        this.solid=true;
+        this.node=node;
+        this.heightTheta=0;
+        this.baseY=y+6;
+        this.lidDy=0;
+        this.lidUp=false;
+    }
+    
+    update(deltaTime) {
+        this.heightTheta+=deltaTime;
+        this.geom.rotateY(deltaTime);
+        this.geom.position.y=this.baseY+0.4*Math.sin(this.heightTheta);
+        if (this.lidUp) {
+            this.geom.children[0].position.y+=this.lidDy*deltaTime;
+            this.lidDy-=GRAVITY*deltaTime;
+            this.geom.children[0].rotateY(deltaTime*3);
+            if (this.geom.children[0].position.y<=1.6) {
+                this.geom.children[0].position.y=1.6;
+                this.geom.children[0].rotation.y=0;
+                this.lidDy=0;
+                this.lidUp=false;
+            }
+        }
+    }
+    
+    throwLid() {
+        this.geom.children[0].position.set(0,1.6,0);
+        this.geom.children[0].rotation.y=0;
+        this.lidDy=15;
+        this.lidUp=true;
+    }
+    
+    spawnPikmin(num) {
+        for (let i=0; i<num; i++) {
+            let p=new Pikmin(this.hitbox.x,this.geom.position.y+2,this.hitbox.z);
+            p.mode=2;
+            let theta=Math.random()*Math.PI*2;
+            p.dx=3*Math.sin(theta);
+            p.dy=10;
+            p.dz=3*Math.cos(theta);
+            entities.push(p);
+        }
+        this.throwLid();
+    }
+}
+
+class Spring extends Entity {
+    constructor(x,y,z,dx,dy,dz) {
+        super(x,y,z,new Cylinder(x,y,z,1,0.2),new THREE.Mesh(new THREE.BoxBufferGeometry(1,0.2,1),new THREE.MeshLambertMaterial({color: 0x00ff00})));
+        this.dx=dx;
+        this.dy=dy;
+        this.dz=dz;
+    }
+    
+    update(deltaTime) {
+        for (let i=0; i<entities.length; i++) {
+            if (entities[i]!==this&&entities[i].springable&&entities[i].hitbox.intersects(this.hitbox)) {
+                entities[i].spring(this.dx,this.dy,this.dz);
+            }
         }
     }
 }

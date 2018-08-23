@@ -19,14 +19,14 @@ var floors=[];
 var terrainObjs=[];
 
 var textures=[];
-var texURLs=["img/sand.png","img/grass.png","img/stone2.png","img/bridge.png","img/weakWall.png"];
+var texURLs=["img/sand.png","img/grass.png","img/stone2.png","img/bridge.png","img/weakWall.png","img/onion.png"];
 
 var graph=new MapGraph();
 
 var keys=[keyboard(87),keyboard(83),keyboard(65),keyboard(68),keyboard(9),mouseClick(1),mouseClick(3),keyboard(16),keyboard(81),keyboard(73)];
 
 var DEBUG_SHOW_GRAPH_NODES=false;
-var DEBUG_EASY_OBSTACLES=false;
+var DEBUG_EASY_OBSTACLES=true;
 
 function onMouseMove(ev) {
     mouse.x=(ev.clientX/window.innerWidth)*2-1;
@@ -221,8 +221,19 @@ function loadLevel(url,callback) {
                 case "bridge":
                     entities.push(new Bridge(new THREE.Vector2(result.entities[i].p1.x,result.entities[i].p1.z),new THREE.Vector2(result.entities[i].p2.x,result.entities[i].p2.z),result.entities[i].y,result.entities[i].id));
                     break;
+                case "fallBridge":
+                    entities.push(new FallBridge(new THREE.Vector2(result.entities[i].p1.x,result.entities[i].p1.z),new THREE.Vector2(result.entities[i].p2.x,result.entities[i].p2.z),result.entities[i].y,result.entities[i].yFinal,result.entities[i].id));
+                    break;
                 case "wall":
                     entities.push(new BreakableWall(new THREE.Vector2(result.entities[i].p1.x,result.entities[i].p1.z),new THREE.Vector2(result.entities[i].p2.x,result.entities[i].p2.z),result.entities[i].yMin,result.entities[i].yMax,result.entities[i].id));
+                    break;
+                case "onion":
+                    let o=new Onion(result.graph[result.entities[i].node].x,result.graph[result.entities[i].node].y,result.graph[result.entities[i].node].z,result.entities[i].node);
+                    entities.push(o);
+                    graph.onion=o;
+                    break;
+                case "spring":
+                    entities.push(new Spring(result.entities[i].x,result.entities[i].y,result.entities[i].z,result.entities[i].dx,result.entities[i].dy,result.entities[i].dz));
                     break;
             }
         }
@@ -260,6 +271,10 @@ function animate(currentTime) {
     lastTime=currentTime;
     for (let i=0; i<entities.length; i++) {
         entities[i].update(deltaTime);
+        if (entities[i].toRemove) {
+            entities.splice(i,1);
+            i--;
+        }
     }
     if (mouse.x<-0.9) {
         camera.destTheta+=deltaTime;
