@@ -23,7 +23,9 @@ class MapGraph {
         for (let i=0; i<this.nodes.length; i++) {
             addVisualGraphNode(i,new THREE.Vector3(this.nodes[i].x,this.nodes[i].y,this.nodes[i].z));
             for (let j=0; j<this.nodes[i].links.length; j++) {
-                if (this.nodes[i].links[j]>i||!this.nodes[this.nodes[i].links[j]].links.includes(i)) {
+                if (!this.nodes[this.nodes[i].links[j]].links.includes(i)) {
+                    addVisualGraphEdge((this.nodes[this.nodes[i].links[j]].x+this.nodes[i].x)/2,(this.nodes[this.nodes[i].links[j]].y+this.nodes[i].y)/2+0.5,(this.nodes[this.nodes[i].links[j]].z+this.nodes[i].z)/2,this.nodes[this.nodes[i].links[j]].x,this.nodes[this.nodes[i].links[j]].y+0.5,this.nodes[this.nodes[i].links[j]].z);
+                } else if (this.nodes[i].links[j]>i) {
                     addVisualGraphEdge(this.nodes[i].x,this.nodes[i].y+0.5,this.nodes[i].z,this.nodes[this.nodes[i].links[j]].x,this.nodes[this.nodes[i].links[j]].y+0.5,this.nodes[this.nodes[i].links[j]].z);
                 }
             }
