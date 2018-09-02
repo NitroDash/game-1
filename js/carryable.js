@@ -188,6 +188,12 @@ class Pellet extends Carryable {
 
 class OnePellet extends Pellet {
     constructor(x,y,z) {
-        super(x,y,z,new THREE.TextureLoader().load("img/OneRedPellet.png"),1,0.5,1);
+        super(x,y,z,getTexture(6),1,0.5,1);
+    }
+}
+
+class FivePellet extends Pellet {
+    constructor(x,y,z) {
+        super(x,y,z,getTexture(7),1.5,0.7,5);
     }
 }

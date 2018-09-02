@@ -21,13 +21,13 @@ var floors=[];
 var terrainObjs=[];
 
 var textures=[];
-var texURLs=["img/sand.png","img/grass.png","img/stone2.png","img/bridge.png","img/weakWall.png","img/onion.png"];
+var texURLs=["img/sand.png","img/grass.png","img/stone2.png","img/bridge.png","img/weakWall.png","img/onion.png","img/OneRedPellet.png","img/FiveRedPellet.png"];
 
 var graph=new MapGraph();
 
 var keys=[keyboard(87),keyboard(83),keyboard(65),keyboard(68),keyboard(9),mouseClick(1),mouseClick(3),keyboard(16),keyboard(81),keyboard(73)];
 
-var DEBUG_SHOW_GRAPH_NODES=true;
+var DEBUG_SHOW_GRAPH_NODES=false;
 var DEBUG_EASY_OBSTACLES=false;
 var DEBUG_SPAWN_PELLET_ON_THROW=false;
 
@@ -218,6 +218,9 @@ function loadLevel(url,callback) {
                     break;
                 case "onePellet":
                     entities.push(new OnePellet(result.entities[i].x,result.entities[i].y,result.entities[i].z));
+                    break;
+                case "fivePellet":
+                    entities.push(new FivePellet(result.entities[i].x,result.entities[i].y,result.entities[i].z));
                     break;
                 case "pikmin":
                     entities.push(new Pikmin(result.entities[i].x,result.entities[i].y,result.entities[i].z));
