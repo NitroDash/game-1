@@ -6,6 +6,8 @@ var debugCanvas,debugCtx;
 var cameraRay;
 var mouse;
 
+var resizing;
+
 var cursor;
 var cachedMouseObjs=null;
 var whistleSphere;
@@ -25,7 +27,7 @@ var graph=new MapGraph();
 
 var keys=[keyboard(87),keyboard(83),keyboard(65),keyboard(68),keyboard(9),mouseClick(1),mouseClick(3),keyboard(16),keyboard(81),keyboard(73)];
 
-var DEBUG_SHOW_GRAPH_NODES=false;
+var DEBUG_SHOW_GRAPH_NODES=true;
 var DEBUG_EASY_OBSTACLES=false;
 var DEBUG_SPAWN_PELLET_ON_THROW=false;
 
@@ -113,6 +115,7 @@ function init() {
     cameraRay=new THREE.Raycaster();
     mouse=new THREE.Vector2();
     window.addEventListener("mousemove",onMouseMove,false);
+    window.addEventListener("resize",function() {resizing = true;});
     
     cursor={};
     let tex=new THREE.TextureLoader().load("img/cursor.png");
@@ -267,6 +270,12 @@ function getTexture(id) {
 }
 
 function animate(currentTime) {
+    if (resizing) {
+        resizing=false;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    }
     let deltaTime=Math.min((currentTime-lastTime)/1000,0.024);
     if (lastTime==0) deltaTime=0.016;
     lastTime=currentTime;
